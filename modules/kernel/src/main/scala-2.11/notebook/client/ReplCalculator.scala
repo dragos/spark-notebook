@@ -440,13 +440,14 @@ class ReplCalculator(
           val (matched, candidates) = repl.complete(line, cursorPosition)
           sender ! CompletionResponse(cursorPosition, candidates, matched)
 
-        case ObjectInfoRequest(code, position) =>
-          val completions = repl.objectInfo(code, position)
+        case InspectRequest(code, position) =>
+//          val completions = repl.objectInfo(code, position)
+          val completions = List("This is an additional info tooltip")
 
           val resp = if (completions.length == 0) {
-            ObjectInfoResponse(false, code, "", "")
+            InspectResponse(false, Map(), Map())
           } else {
-            ObjectInfoResponse(true, code, completions.mkString("\n"), "")
+            InspectResponse(true, Map("text/plain" -> completions.mkString("\n")), Map())
           }
 
           sender ! resp

@@ -41,7 +41,7 @@ class CalcWebSocketService(
     val ws = new {
       def send(header: JsValue, session: JsValue /*ignored*/ , msgType: String, channel: String,
         content: JsValue) = {
-        Logger.debug(s"Sending info to websockets $wss in $this")
+        Logger.debug(s"Sending info to websockets $wss in $this\n$content")
         wss.foreach { ws =>
           ws.send(header, ws.session, msgType, channel, content)
         }
@@ -118,7 +118,7 @@ class CalcWebSocketService(
           case _: CompletionRequest =>
             operations.completion
 
-          case _: ObjectInfoRequest =>
+          case _: InspectRequest =>
             operations.objectInfo
         }
         val operation = context.actorOf(operationActor)
@@ -187,13 +187,11 @@ class CalcWebSocketService(
 
       def objectInfo = Props(new Actor {
         def receive = {
-          case ObjectInfoResponse(found, name, callDef, callDocString) =>
-            ws.send(header, session, "object_info_reply", "shell", obj(
-              "found" → found,
-              "name" → name,
-              "call_def" → callDef,
-              "call_docstring" → "Description TBD"
-            ))
+          case InspectResponse(found, data, metadata) =>
+            ws.send(header, session, "inspect_reply", "shell", obj(
+                "found" -> found,
+                "data" -> Json.toJson(data),
+                "metadata" -> Json.toJson(metadata)))
             context.stop(self)
         }
       })

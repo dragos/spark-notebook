@@ -253,38 +253,11 @@ class Repl(val compilerOpts: List[String], val jars:List[String]=Nil) {
   }
 
   def complete(line: String, cursorPosition: Int): (String, Seq[Match]) = {
-    def literalCompletion(arg: String) = {
-      val LiteralReg = """.*"([\w/]+)""".r
-      arg match {
-        case LiteralReg(literal) => Some(literal)
-        case _ => None
-      }
-    }
 
-    // CY: Don't ask to explain why this works. Look at JLineCompletion.JLineTabCompletion.complete.mkDotted
-    // The "regularCompletion" path is the only path that is (likely) to succeed
-    // so we want access to that parsed version to pull out the part that was "matched"...
-    // ...just...trust me.
-    val delim = argCompletor.getDelimiter
-    val list = delim.delimit(line, cursorPosition)
-    val bufferPassedToCompletion = list.getCursorArgument
-    val actCursorPosition = list.getArgumentPosition
-    val parsed = Parsed.dotted(bufferPassedToCompletion, actCursorPosition) // withVerbosity verbosity
-    val matchedText = bufferPassedToCompletion.takeRight(actCursorPosition - parsed.position)
-
-    literalCompletion(bufferPassedToCompletion) match {
-      case Some(literal) =>
-        // strip any leading quotes
-        stringCompletor.complete(literal)
-      case None =>
-        val candidates = getCompletions(line, cursorPosition)
-
-        (matchedText, if (candidates.size > 0 && candidates.head.isEmpty) {
-          List()
-        } else {
-          candidates.map(Match(_))
-        })
-    }
+    val pc = new SparkPresentationCompilerCompleter(interp)
+    val res = pc.complete(line, cursorPosition)
+    println("line:" + line)
+    (line.takeRight(cursorPosition - res.cursor), res.candidates.map(Match.apply))
   }
 
   def objectInfo(line: String, position:Int): Seq[String] = {

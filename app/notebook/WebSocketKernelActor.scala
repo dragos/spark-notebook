@@ -82,7 +82,7 @@ class WebSocketKernelActor(
           val JsString(code) = content \ "code"
           val JsNumber(position) = content \ "cursor_pos"
           val JsNumber(detailLevel) = content \ "detail_level" //0,1,2,3
-          calcService.calcActor ! SessionRequest(header, session, ObjectInfoRequest(code, position.toInt))
+          calcService.calcActor ! SessionRequest(header, session, InspectRequest(code, position.toInt))
         case x => log.warning("Unrecognized websocket message: " + json)
       }
   }

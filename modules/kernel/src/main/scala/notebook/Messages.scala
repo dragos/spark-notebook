@@ -8,7 +8,7 @@ case class ExecuteRequest(counter: Int, code: String) extends CalcRequest
 
 case class CompletionRequest(line: String, cursorPosition: Int) extends CalcRequest
 
-case class ObjectInfoRequest(objName: String, position: Int) extends CalcRequest
+case class InspectRequest(objName: String, position: Int) extends CalcRequest
 
 case object InterruptRequest extends CalcRequest
 
@@ -31,13 +31,15 @@ case class ErrorResponse(message: String, incomplete: Boolean) extends CalcRespo
 // ...maybe...
 case class CompletionResponse(cursorPosition: Int, candidates: Seq[Match], matchedText: String)
 
-/*
-name
-call_def
-init_definition
-definition
-call_docstring
-init_docstring
-docstring
+/**
+    # 'ok' if the request succeeded or 'error', with error information as in all other replies.
+    'status' : 'ok',
+    'found'  : Boolean,
+
+    # data can be empty if nothing is found
+    # otherwise a dictionary from mime type to data in that format
+    # for instance, "text/plain": "This is a tooltip"
+    'data' : dict,
+    'metadata' : dict,
 */
-case class ObjectInfoResponse(found: Boolean, name: String, callDef: String, callDocString: String)
+case class InspectResponse(found: Boolean, data: Map[String, String], metadata: Map[String, String])
